@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hetkumar Dhandha — B.Tech CSE (AI/ML), Web Developer</title>
+<meta name="description" content="Hetkumar Dhandha — B.Tech CSE (AI/ML) student, web developer. Builds through vibe coding: Flutter apps, Python tools, gesture-controlled interfaces.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #FAFAF8;
+    --paper: #FFFFFF;
+    --ink: #14161A;
+    --muted: #6B6F76;
+    --line: #E5E5E1;
+    --accent: #2451FF;
+    --accent-soft: #EEF1FF;
+    --radius: 2px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--accent); color:#fff; }
+
+  a{ color:inherit; }
+
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(250,250,248,0.86);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    height:60px;
+  }
+  .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:16px; letter-spacing:0.02em;
+    text-decoration:none;
+  }
+  .brand span{ color:var(--accent); }
+  .navlinks{ display:flex; gap:26px; align-items:center; }
+  .navlinks a{
+    font-size:13px; text-decoration:none; color:var(--muted);
+    letter-spacing:0.01em; transition:color .15s ease;
+  }
+  .navlinks a:hover{ color:var(--ink); }
+  .navlinks a.icon{
+    display:flex; align-items:center; color:var(--ink);
+  }
+  .navlinks svg{ width:18px; height:18px; }
+
+  @media (max-width:640px){
+    .navlinks a:not(.icon){ display:none; }
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:96px 0 72px;
+    border-bottom:1px solid var(--line);
+  }
+  .status-tag{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12px; letter-spacing:0.06em;
+    color:var(--muted);
+    padding:6px 12px;
+    border:1px solid var(--line);
+    border-radius:100px;
+    margin-bottom:28px;
+    background:var(--paper);
+  }
+  .status-dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--accent);
+    animation:blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
+
+  h1.name{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(38px, 7vw, 66px);
+    line-height:1.02;
+    letter-spacing:-0.01em;
+    margin:0 0 18px;
+  }
+  .tagline{
+    font-size:clamp(16px, 2.4vw, 19px);
+    color:var(--muted);
+    max-width:560px;
+    margin:0 0 36px;
+  }
+  .hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    padding:12px 20px;
+    border-radius:var(--radius);
+    text-decoration:none;
+    border:1px solid var(--ink);
+    transition:transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .btn-primary{ background:var(--ink); color:#fff; }
+  .btn-primary:hover{ background:var(--accent); border-color:var(--accent); transform:translateY(-1px); }
+  .btn-ghost{ background:transparent; color:var(--ink); }
+  .btn-ghost:hover{ background:var(--ink); color:#fff; transform:translateY(-1px); }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding:64px 0; border-bottom:1px solid var(--line); }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px; letter-spacing:0.08em; color:var(--accent);
+    text-transform:uppercase; margin:0 0 10px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::after{ content:''; flex:1; height:1px; background:var(--line); }
+  h2.section-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:clamp(24px,3.4vw,32px);
+    margin:0 0 32px;
+  }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{
+    display:grid; grid-template-columns:1.4fr 1fr; gap:48px;
+  }
+  .about-grid p{ color:var(--ink); font-size:16px; margin:0 0 16px; }
+  .about-grid p:last-child{ margin-bottom:0; }
+  .stat-list{ display:flex; flex-direction:column; gap:0; }
+  .stat{
+    padding:16px 0; border-bottom:1px solid var(--line);
+  }
+  .stat:last-child{ border-bottom:none; }
+  .stat .num{
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:26px;
+    display:block;
+  }
+  .stat .label{ font-size:12px; color:var(--muted); letter-spacing:0.03em; }
+  @media (max-width:700px){ .about-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- EDUCATION ---------- */
+  .timeline{ position:relative; padding-left:28px; }
+  .timeline::before{
+    content:''; position:absolute; left:5px; top:6px; bottom:6px;
+    width:1px; background:var(--line);
+  }
+  .tl-item{ position:relative; padding-bottom:34px; }
+  .tl-item:last-child{ padding-bottom:0; }
+  .tl-item::before{
+    content:''; position:absolute; left:-28px; top:5px;
+    width:11px; height:11px; border-radius:50%;
+    background:var(--paper); border:2px solid var(--accent);
+  }
+  .tl-item .when{
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--accent); letter-spacing:0.04em; margin-bottom:4px; display:block;
+  }
+  .tl-item h3{
+    font-family:'Space Grotesk', sans-serif; font-size:19px; margin:0 0 4px;
+  }
+  .tl-item p{ margin:0; color:var(--muted); font-size:14px; }
+
+  /* ---------- SKILLS ---------- */
+  .skill-groups{ display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+  .skill-group h4{
+    font-family:'JetBrains Mono', monospace; font-size:12px;
+    letter-spacing:0.05em; color:var(--muted); text-transform:uppercase;
+    margin:0 0 14px;
+  }
+  .pill-row{ display:flex; flex-wrap:wrap; gap:8px; }
+  .pill{
+    font-size:13px; padding:7px 13px;
+    border:1px solid var(--line); border-radius:100px;
+    background:var(--paper);
+  }
+  @media (max-width:700px){ .skill-groups{ grid-template-columns:1fr; } }
+
+  /* ---------- PROJECTS ---------- */
+  .project-list{ display:flex; flex-direction:column; gap:0; }
+  .project{
+    display:grid; grid-template-columns:36px 1fr auto;
+    gap:20px; align-items:start;
+    padding:28px 0; border-bottom:1px solid var(--line);
+  }
+  .project:first-child{ padding-top:0; }
+  .project:last-child{ border-bottom:none; padding-bottom:0; }
+  .project .idx{
+    font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--muted);
+    padding-top:3px;
+  }
+  .project h3{
+    font-family:'Space Grotesk', sans-serif; font-size:20px; margin:0 0 8px;
+  }
+  .project .tags{ margin:12px 0 0; display:flex; flex-wrap:wrap; gap:6px; }
+  .project .tags span{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px;
+    color:var(--muted); border:1px solid var(--line); border-radius:100px;
+    padding:3px 9px;
+  }
+  .project p.desc{ margin:0; color:var(--muted); font-size:14.5px; max-width:56ch; }
+  .project .link{
+    align-self:start; font-family:'JetBrains Mono', monospace; font-size:12px;
+    text-decoration:none; white-space:nowrap;
+    border-bottom:1px solid var(--ink); padding-bottom:2px;
+  }
+  .project .link:hover{ color:var(--accent); border-color:var(--accent); }
+  @media (max-width:640px){
+    .project{ grid-template-columns:24px 1fr; }
+    .project .link{ grid-column:2; margin-top:10px; }
+  }
+
+  /* ---------- CERTIFICATIONS ---------- */
+  .empty-state{
+    border:1px dashed var(--line); border-radius:var(--radius);
+    padding:32px; text-align:left; color:var(--muted); font-size:14.5px;
+    background:var(--paper);
+  }
+  .empty-state .mono{ display:block; font-size:12px; color:var(--accent); margin-bottom:8px; }
+
+  /* ---------- CONTACT ---------- */
+  .contact{ border-bottom:none; }
+  .contact-box{
+    background:var(--ink); color:#fff;
+    padding:56px 40px; border-radius:var(--radius);
+    display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:28px;
+  }
+  .contact-box h2{
+    font-family:'Space Grotesk', sans-serif; font-weight:600;
+    font-size:clamp(22px,3.6vw,30px); margin:0; max-width:420px;
+  }
+  .contact-links{ display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+  .contact-links a{
+    text-decoration:none; font-family:'JetBrains Mono', monospace; font-size:14px;
+    color:#fff; border-bottom:1px solid rgba(255,255,255,0.35); padding-bottom:2px;
+  }
+  .contact-links a:hover{ border-color:var(--accent); color:var(--accent); }
+  @media (max-width:640px){ .contact-box{ flex-direction:column; align-items:flex-start; } .contact-links{ align-items:flex-start; } }
+
+  footer{
+    padding:28px 0 48px; text-align:center;
+    font-size:12px; color:var(--muted); font-family:'JetBrains Mono', monospace;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+    html{ scroll-behavior:auto; }
+  }
+
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <a href="#top" class="brand">HD<span>.</span></a>
+    <div class="navlinks">
+      <a href="#about">About</a>
+      <a href="#education">Education</a>
+      <a href="#skills">Skills</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+      <a class="icon" href="https://github.com/hetbuilds27-afk-FR" target="_blank" rel="noopener" aria-label="GitHub profile">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.02 3.26 9.28 7.78 10.78.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.1-3.16.69-3.83-1.34-3.83-1.34-.52-1.31-1.26-1.66-1.26-1.66-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94.1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.16a10.9 10.9 0 0 1 5.72 0c2.18-1.47 3.14-1.16 3.14-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.66 5.31-5.19 5.59.41.35.77 1.04.77 2.11 0 1.52-.01 2.75-.01 3.12 0 .3.2.66.79.55A10.53 10.53 0 0 0 23.5 12.02C23.5 5.74 18.27.5 12 .5Z"/></svg>
+      </a>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" style="border-bottom:1px solid var(--line);">
+    <div class="wrap">
+      <div class="status-tag mono"><span class="status-dot"></span> STATUS: BUILDING — B.TECH CSE (AI/ML)</div>
+      <h1 class="name">Hetkumar Dhandha</h1>
+      <p class="tagline">CSE (AI/ML) undergrad who ships by vibe coding — web apps, Python tools, and gesture-controlled interfaces, front to back.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#projects">View projects</a>
+        <a class="btn btn-ghost" href="mailto:hetbuilds27@gmail.com">Email me</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="wrap">
+      <p class="eyebrow">01 / About</p>
+      <h2 class="section-title">Summary</h2>
+      <div class="about-grid">
+        <div>
+          <p>I'm a B.Tech Computer Science (AI/ML) student at Ganpat University, Ahmedabad Branch, currently figuring out how far "just build it" can take you. No formal work experience yet — my learning happens through shipping: a published Android app, a cross-platform Flutter tool, and a couple of gesture-controlled experiments that push a webcam feed into working UI.</p>
+          <p>I work across the stack — frontend, backend, and Python — and lean heavily on AI-assisted, iterative "vibe coding" to move fast from idea to working product. Right now I'm most interested in where computer vision, interaction design, and everyday tools overlap.</p>
+        </div>
+        <div class="stat-list">
+          <div class="stat"><span class="num">4</span><span class="label">Shipped projects</span></div>
+          <div class="stat"><span class="num">0</span><span class="label">Years formal work experience — learning by building instead</span></div>
+          <div class="stat"><span class="num">AI/ML</span><span class="label">Current specialization track</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section id="education">
+    <div class="wrap">
+      <p class="eyebrow">02 / Education</p>
+      <h2 class="section-title">Education</h2>
+      <div class="timeline">
+        <div class="tl-item">
+          <span class="when mono">CURRENT</span>
+          <h3>B.Tech, Computer Science &amp; Engineering — AI/ML</h3>
+          <p>Ganpat University, Ahmedabad Branch</p>
+        </div>
+        <div class="tl-item">
+          <span class="when mono">CLASS 12</span>
+          <h3>Higher Secondary — Science, Group A</h3>
+          <p>Swastik School of Science</p>
+        </div>
+        <div class="tl-item">
+          <span class="when mono">CLASS 10</span>
+          <h3>Secondary School</h3>
+          <p>Mahan High School</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="wrap">
+      <p class="eyebrow">03 / Skills</p>
+      <h2 class="section-title">Skills</h2>
+      <div class="skill-groups">
+        <div class="skill-group">
+          <h4>Core</h4>
+          <div class="pill-row">
+            <span class="pill">Python</span>
+            <span class="pill">Flutter</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <h4>Web Development</h4>
+          <div class="pill-row">
+            <span class="pill">Frontend</span>
+            <span class="pill">Backend</span>
+            <span class="pill">HTML/CSS/JS</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <h4>Applied / Tooling</h4>
+          <div class="pill-row">
+            <span class="pill">Computer Vision (OpenCV, MediaPipe)</span>
+            <span class="pill">Vibe coding</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="wrap">
+      <p class="eyebrow">04 / Projects</p>
+      <h2 class="section-title">Projects</h2>
+      <div class="project-list">
+
+        <div class="project">
+          <span class="idx mono">01</span>
+          <div>
+            <h3>Expense Tracker</h3>
+            <p class="desc">Published Android app for tracking personal expenses, with spending insights broken down by week, month, and year.</p>
+            <div class="tags"><span>Flutter</span><span>Android</span><span>Play Store</span></div>
+          </div>
+          <a class="link" href="https://play.google.com/store/apps/details?id=com.hetbuilds.expensetracker" target="_blank" rel="noopener">Play Store →</a>
+        </div>
+
+        <div class="project">
+          <span class="idx mono">02</span>
+          <div>
+            <h3>Attendance Tracker</h3>
+            <p class="desc">Flutter app for per-subject attendance percentage, with target-based projections showing how many classes you can skip or need to attend.</p>
+            <div class="tags"><span>Flutter</span><span>Mobile</span></div>
+          </div>
+          <a class="link" href="https://github.com/hetbuilds27-afk-FR/Attendece-App" target="_blank" rel="noopener">GitHub →</a>
+        </div>
+
+        <div class="project">
+          <span class="idx mono">03</span>
+          <div>
+            <h3>Supernova-7 — Gesture Containment Field</h3>
+            <p class="desc">A browser-based WebGL particle field you destabilize and calibrate with hand gestures — real-time webcam hand tracking driving a Three.js shader system.</p>
+            <div class="tags"><span>Three.js</span><span>WebGL</span><span>MediaPipe</span></div>
+          </div>
+          <a class="link" href="gesture-demo/index.html" target="_blank" rel="noopener">Live demo →</a>
+        </div>
+
+        <div class="project">
+          <span class="idx mono">04</span>
+          <div>
+            <h3>Gesture Control</h3>
+            <p class="desc">OS-level hand-gesture mouse and keyboard control for Windows — pinch to click and scroll, gesture to switch windows, with a live HUD overlay.</p>
+            <div class="tags"><span>Python</span><span>OpenCV</span><span>PyAutoGUI</span></div>
+          </div>
+          <a class="link" href="Gesture_Control.py" target="_blank" rel="noopener">Source →</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CERTIFICATIONS -->
+  <section id="certifications">
+    <div class="wrap">
+      <p class="eyebrow">05 / Certifications</p>
+      <h2 class="section-title">Certifications</h2>
+      <div class="empty-state">
+        <span class="mono">// NONE YET</span>
+        No certifications on record yet — the focus so far has been shipping projects. This section updates as that changes.
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="contact">
+    <div class="wrap">
+      <div class="contact-box">
+        <h2>Building something? Let's talk.</h2>
+        <div class="contact-links">
+          <a href="mailto:hetbuilds27@gmail.com">hetbuilds27@gmail.com</a>
+          <a href="https://github.com/hetbuilds27-afk-FR" target="_blank" rel="noopener">github.com/hetbuilds27-afk-FR</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Built and vibe-coded by Hetkumar Dhandha</footer>
+
+</body>
+</html>

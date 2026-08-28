@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPERNOVA-7 // Containment Interface</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #030308;
+            --core-cyan: #5EEAD4;
+            --core-white: #F2FBFF;
+            --stress-amber: #FFB238;
+            --breach-red: #FF3B3B;
+            --revive-violet: #C4A2FF;
+            --line: rgba(180, 220, 255, 0.16);
+            --line-bright: rgba(200, 235, 255, 0.4);
+            --dim: rgba(210, 235, 255, 0.42);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: var(--bg);
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--dim);
+        }
+
+        canvas { display: block; }
+
+        /* Ambient grid + vignette */
+        #atmosphere {
+            position: fixed; inset: 0; pointer-events: none; z-index: 5;
+            background:
+                radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.75) 100%),
+                repeating-linear-gradient(0deg, var(--line) 0px, transparent 1px, transparent 48px, var(--line) 49px),
+                repeating-linear-gradient(90deg, var(--line) 0px, transparent 1px, transparent 48px, var(--line) 49px);
+            opacity: 0.35;
+            mix-blend-mode: screen;
+        }
+
+        #scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 6;
+            background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, transparent 1px, transparent 3px);
+            animation: scandrift 9s linear infinite;
+            opacity: 0.5;
+        }
+        @keyframes scandrift { from { background-position: 0 0; } to { background-position: 0 300px; } }
+
+        #ui {
+            position: absolute; inset: 0; pointer-events: none; z-index: 10;
+            padding: clamp(20px, 4vw, 48px);
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        .row { display: flex; justify-content: space-between; align-items: flex-start; }
+
+        .eyebrow {
+            font-size: 11px; letter-spacing: 4px; color: var(--dim);
+            text-transform: uppercase;
+        }
+        .eyebrow::before { content: '◆ '; color: var(--core-cyan); }
+
+        #status {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(20px, 3vw, 34px);
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--core-cyan);
+            text-shadow: 0 0 18px currentColor;
+            transition: color 0.4s ease;
+            margin-top: 6px;
+        }
+
+        .telemetry {
+            text-align: right;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            line-height: 1.9;
+        }
+        .telemetry .label { color: var(--dim); }
+        .telemetry .value { color: var(--core-white); font-weight: 700; margin-left: 8px; }
+        .bar-track {
+            width: 120px; height: 3px; background: rgba(255,255,255,0.1);
+            display: inline-block; vertical-align: middle; margin-left: 8px;
+            position: relative; overflow: hidden;
+        }
+        .bar-fill {
+            position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+            background: var(--core-cyan); transition: width 0.15s linear, background 0.3s ease;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        /* Reticle */
+        #reticle {
+            position: absolute; top: 50%; left: 50%;
+            width: min(56vh, 56vw); height: min(56vh, 56vw);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        #reticle svg { width: 100%; height: 100%; animation: spin 40s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .bracket { stroke: var(--line-bright); stroke-width: 1.5; fill: none; opacity: 0.55; }
+        .ring { stroke: var(--core-cyan); stroke-width: 0.75; fill: none; opacity: 0.25; }
+
+        .footer-row { display: flex; justify-content: space-between; align-items: flex-end; }
+
+        .legend {
+            font-size: 11px; letter-spacing: 1px; line-height: 2;
+            color: var(--dim);
+        }
+        .legend b { color: var(--core-white); letter-spacing: 2px; }
+        .legend .key { color: var(--core-cyan); }
+
+        .ticker {
+            text-align: right; font-size: 11px; letter-spacing: 1px; line-height: 2;
+            color: var(--dim);
+        }
+
+        #warning {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8vw; font-weight: 900; letter-spacing: 6px;
+            color: rgba(255, 59, 59, 0.15);
+            opacity: 0; transition: opacity 0.1s;
+            text-shadow: 0 0 40px rgba(255,59,59,0.4);
+        }
+
+        #flash {
+            position: fixed; inset: 0; opacity: 0; transition: opacity 0.15s;
+            pointer-events: none; z-index: 90; mix-blend-mode: screen;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,59,59,0.5) 55%, transparent 100%);
+        }
+
+        /* Boot overlay */
+        #boot {
+            position: fixed; inset: 0; z-index: 200; background: var(--bg);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 18px; transition: opacity 0.8s ease;
+        }
+        #boot .mark {
+            font-family: 'Orbitron', sans-serif; font-size: 15px; letter-spacing: 6px;
+            color: var(--core-cyan); text-shadow: 0 0 14px currentColor;
+        }
+        #boot .line { font-size: 12px; letter-spacing: 2px; color: var(--dim); }
+        #boot .bar-track { width: 220px; height: 2px; }
+        #boot.hidden { opacity: 0; pointer-events: none; }
+
+        #boot.error .mark { color: var(--breach-red); }
+        #boot .retry {
+            pointer-events: auto; margin-top: 4px; font-family: 'JetBrains Mono', monospace;
+            font-size: 11px; letter-spacing: 2px; color: var(--core-white);
+            background: transparent; border: 1px solid var(--line-bright);
+            padding: 8px 18px; cursor: pointer; display: none;
+        }
+        #boot.error .retry { display: inline-block; }
+        #boot .retry:hover { background: rgba(255,255,255,0.06); }
+
+        video { position: absolute; bottom: 0; right: 0; width: 1px; height: 1px; opacity: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="boot">
+        <div class="mark">SUPERNOVA-7</div>
+        <div class="line" id="boot-line">INITIALIZING SENSOR ARRAY…</div>
+        <div class="bar-track"><div class="bar-fill" id="boot-bar" style="background: var(--core-cyan);"></div></div>
+        <button class="retry" id="boot-retry">RETRY CAMERA ACCESS</button>
+    </div>
+
+    <div id="atmosphere"></div>
+    <div id="scanlines"></div>
+    <div id="flash"></div>
+
+    <div id="ui">
+        <div class="row">
+            <div>
+                <div class="eyebrow">Quantum Core / Containment Interface</div>
+                <div id="status">CONTAINMENT STABLE</div>
+            </div>
+            <div class="telemetry">
+                <div>ZOOM <span class="value" id="tel-zoom">1.00x</span></div>
+                <div>FIELD STRESS <span class="value" id="tel-stress">0%</span>
+                    <span class="bar-track"><span class="bar-fill" id="tel-stress-bar"></span></span>
+                </div>
+                <div>TRACKING <span class="value" id="tel-tracking">NO SIGNAL</span></div>
+            </div>
+        </div>
+
+        <div id="reticle">
+            <svg viewBox="0 0 200 200">
+                <circle class="ring" cx="100" cy="100" r="92"/>
+                <circle class="ring" cx="100" cy="100" r="70"/>
+                <path class="bracket" d="M10,40 L10,10 L40,10"/>
+                <path class="bracket" d="M160,10 L190,10 L190,40"/>
+                <path class="bracket" d="M190,160 L190,190 L160,190"/>
+                <path class="bracket" d="M40,190 L10,190 L10,160"/>
+            </svg>
+        </div>
+
+        <div class="footer-row">
+            <div class="legend">
+                <b>GESTURE PROTOCOL</b><br>
+                <span class="key">FIST</span> — charge containment field<br>
+                <span class="key">PINCH × 2</span> — realign after breach<br>
+                <span class="key">TWO HANDS, SPREAD</span> — scale core<br>
+                <span class="key">ONE HAND</span> — reposition core
+            </div>
+            <div class="ticker" id="ticker">
+                X 0.000&nbsp;&nbsp;Y 0.000<br>
+                PARTICLES 20,000<br>
+                SIG SUPERNOVA-7
+            </div>
+        </div>
+    </div>
+
+    <div id="warning">BREACH IMMINENT</div>
+
+    <video id="webcam" autoplay playsinline muted></video>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.z = 40;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- GLOW TEXTURE ---
+        const getSprite = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            g.addColorStop(0, 'rgba(255,255,255,1)');
+            g.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+            g.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0,0,64,64);
+            return new THREE.CanvasTexture(canvas);
+        };
+
+        // --- PARTICLES ---
+        const count = 20000;
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(count * 3);
+        const data = new Float32Array(count * 3); // x: radius, y: theta, z: phi
+        const burst = new Float32Array(count * 3); // Explosion direction
+        const extras = new Float32Array(count * 3); // x: size, y: speed, z: random
+
+        for(let i=0; i<count; i++) {
+            const r = 10 + Math.random() * 2;
+            const theta = Math.acos(THREE.MathUtils.randFloatSpread(2));
+            const phi = Math.random() * Math.PI * 2;
+
+            data[i*3] = r;
+            data[i*3+1] = theta;
+            data[i*3+2] = phi;
+
+            pos[i*3] = 0; pos[i*3+1] = 0; pos[i*3+2] = 0;
+
+            const bx = Math.sin(theta) * Math.cos(phi);
+            const by = Math.sin(theta) * Math.sin(phi);
+            const bz = Math.cos(theta);
+
+            const burstSpeed = 50 + Math.random() * 100;
+            burst[i*3] = bx * burstSpeed;
+            burst[i*3+1] = by * burstSpeed;
+            burst[i*3+2] = bz * burstSpeed;
+
+            extras[i*3] = Math.random();
+            extras[i*3+1] = Math.random();
+            extras[i*3+2] = Math.random();
+        }
+
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute('aData', new THREE.BufferAttribute(data, 3));
+        geo.setAttribute('aBurst', new THREE.BufferAttribute(burst, 3));
+        geo.setAttribute('aExtra', new THREE.BufferAttribute(extras, 3));
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uTex: { value: getSprite() },
+                uZoom: { value: 1.0 },
+                uStress: { value: 0.0 },
+                uExplode: { value: 0.0 },
+                uRevive: { value: 0.0 },
+                uHand: { value: new THREE.Vector3(0,0,0) }
+            },
+            vertexShader: `
+                uniform float uTime, uZoom, uStress, uExplode, uRevive;
+                uniform vec3 uHand;
+                attribute vec3 aData, aBurst, aExtra;
+                varying float vAlpha;
+                varying vec3 vColor;
+
+                void main() {
+                    float r = aData.x;
+                    float theta = aData.y;
+                    float phi = aData.z;
+
+                    float currentRadius = r * uZoom;
+                    currentRadius *= (1.0 - uStress * 0.3);
+
+                    vec3 spherePos;
+                    spherePos.x = currentRadius * sin(theta) * cos(phi);
+                    spherePos.y = currentRadius * sin(theta) * sin(phi);
+                    spherePos.z = currentRadius * cos(theta);
+
+                    float rot = uTime * 0.2 + (uStress * 5.0);
+                    float c = cos(rot), s = sin(rot);
+                    spherePos.xz = mat2(c, -s, s, c) * spherePos.xz;
+
+                    if (uStress > 0.0) {
+                        spherePos += vec3(
+                            sin(uTime * 50.0 + aExtra.y * 10.0),
+                            cos(uTime * 45.0 + aExtra.y * 10.0),
+                            sin(uTime * 60.0)
+                        ) * (uStress * 0.5 * uZoom);
+                    }
+
+                    vec3 finalPos = spherePos + uHand;
+
+                    if (uExplode > 0.0) {
+                        float t = uExplode;
+                        vec3 blastOffset = aBurst * (pow(t, 0.5) * 4.0);
+                        finalPos = mix(finalPos, uHand + blastOffset, t);
+                    }
+
+                    // REVIVE: spiral suction back toward the core as fragments are reclaimed
+                    if (uRevive > 0.0) {
+                        vec3 rel = finalPos - uHand;
+                        float ang = uRevive * 10.0 * (0.4 + aExtra.z * 0.6);
+                        float rc = cos(ang), rs = sin(ang);
+                        rel.xz = mat2(rc, -rs, rs, rc) * rel.xz;
+                        rel *= (1.0 - uRevive * 0.15);
+                        finalPos = uHand + rel;
+                    }
+
+                    vec4 mv = modelViewMatrix * vec4(finalPos, 1.0);
+                    gl_Position = projectionMatrix * mv;
+
+                    gl_PointSize = (4.0 * aExtra.x + 2.0) * (50.0 / -mv.z);
+                    if (uStress > 0.5) gl_PointSize *= (1.0 + uStress * 2.0);
+                    if (uExplode > 0.0) gl_PointSize *= (1.0 - uExplode * 0.5);
+                    if (uRevive > 0.0) gl_PointSize *= (1.0 + uRevive * 0.6);
+
+                    vec3 cCyan = vec3(0.37, 0.92, 0.83);
+                    vec3 cWhite = vec3(0.95, 0.98, 1.0);
+                    vec3 cRed = vec3(1.0, 0.23, 0.23);
+                    vec3 cViolet = vec3(0.77, 0.63, 1.0);
+
+                    vColor = cCyan;
+                    if (uStress > 0.0) vColor = mix(cCyan, cWhite, uStress);
+                    if (uExplode > 0.0) vColor = mix(cWhite, cRed, uExplode);
+                    if (uRevive > 0.0) vColor = mix(vColor, cViolet, uRevive * 0.7);
+
+                    vAlpha = 1.0;
+                    if (uExplode > 0.5 && uRevive <= 0.0) vAlpha = 1.0 - (uExplode - 0.5) * 2.0;
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D uTex;
+                varying float vAlpha;
+                varying vec3 vColor;
+                void main() {
+                    vec4 tex = texture2D(uTex, gl_PointCoord);
+                    if (tex.a < 0.05) discard;
+                    gl_FragColor = vec4(vColor, tex.a * vAlpha);
+                }
+            `,
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+
+        const points = new THREE.Points(geo, material);
+        scene.add(points);
+
+        // --- LOGIC & STATE ---
+        const state = {
+            zoom: 1.0,
+            stress: 0.0,
+            exploded: 0.0,
+            reviving: 0.0,
+            isDead: false,
+            gestureLive: false
+        };
+
+        const ui = {
+            status: document.getElementById('status'),
+            warn: document.getElementById('warning'),
+            flash: document.getElementById('flash'),
+            telZoom: document.getElementById('tel-zoom'),
+            telStress: document.getElementById('tel-stress'),
+            telStressBar: document.getElementById('tel-stress-bar'),
+            telTracking: document.getElementById('tel-tracking'),
+            ticker: document.getElementById('ticker'),
+            boot: document.getElementById('boot'),
+            bootLine: document.getElementById('boot-line'),
+            bootBar: document.getElementById('boot-bar'),
+            bootRetry: document.getElementById('boot-retry')
+        };
+
+        function setStatus(text, color) {
+            ui.status.innerText = text;
+            ui.status.style.color = color;
+        }
+
+        let handLandmarker;
+        let lastVideoTime = -1;
+        let lastHandPos = { x: 0, y: 0 };
+
+        async function loadModel() {
+            ui.bootLine.innerText = 'CALIBRATING GESTURE MODEL…';
+            ui.bootBar.style.width = '35%';
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
+            handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task" },
+                runningMode: "VIDEO", numHands: 2
+            });
+            ui.bootBar.style.width = '65%';
+        }
+
+        async function requestCamera() {
+            ui.boot.classList.remove('error');
+            ui.bootLine.innerText = 'REQUESTING SENSOR ACCESS…';
+            ui.bootBar.style.width = '80%';
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('webcam');
+                video.srcObject = stream;
+                await new Promise(res => video.addEventListener('loadeddata', res, { once: true }));
+                ui.bootBar.style.width = '100%';
+                ui.bootLine.innerText = 'SENSOR ARRAY ONLINE';
+                state.gestureLive = true;
+                setTimeout(() => ui.boot.classList.add('hidden'), 500);
+            } catch (err) {
+                // Graceful fallback: run the core in ambient mode without gesture control
+                ui.boot.classList.add('error');
+                ui.bootLine.innerText = 'SENSOR ARRAY OFFLINE — CAMERA ACCESS UNAVAILABLE';
+                ui.telTracking.innerText = 'MANUAL OVERRIDE';
+                state.gestureLive = false;
+                setTimeout(() => ui.boot.classList.add('hidden'), 2200);
+            }
+        }
+
+        ui.bootRetry.addEventListener('click', requestCamera);
+
+        function triggerExplosion() {
+            state.isDead = true;
+            ui.flash.style.opacity = 1.0;
+            ui.flash.style.transition = "none";
+            setStatus('CONTAINMENT BREACH', 'var(--breach-red)');
+
+            const shake = setInterval(() => {
+                camera.position.x = (Math.random() - 0.5) * 5;
+                camera.position.y = (Math.random() - 0.5) * 5;
+            }, 16);
+
+            setTimeout(() => {
+                ui.flash.style.transition = "opacity 1.4s";
+                ui.flash.style.opacity = 0;
+                clearInterval(shake);
+                camera.position.set(0,0,40);
+            }, 300);
+        }
+
+        function animate() {
+            const video = document.getElementById('webcam');
+
+            if (state.gestureLive && video.currentTime !== lastVideoTime) {
+                lastVideoTime = video.currentTime;
+                const res = handLandmarker.detectForVideo(video, performance.now());
+
+                if (res.landmarks.length > 0) {
+                    const h1 = res.landmarks[0];
+                    const h2 = res.landmarks[1];
+                    ui.telTracking.innerText = h2 ? '2 HANDS' : '1 HAND';
+                    lastHandPos = { x: h1[9].x, y: h1[9].y };
+
+                    if (h2 && !state.isDead) {
+                        const dist = Math.hypot(h1[9].x - h2[9].x, h1[9].y - h2[9].y);
+                        const targetZoom = THREE.MathUtils.mapLinear(dist, 0.2, 0.7, 0.5, 3.0);
+                        state.zoom += (targetZoom - state.zoom) * 0.1;
+
+                        const cx = (h1[9].x + h2[9].x) / 2;
+                        const cy = (h1[9].y + h2[9].y) / 2;
+                        const tx = (cx - 0.5) * -50;
+                        const ty = (cy - 0.5) * -30;
+                        material.uniforms.uHand.value.lerp(new THREE.Vector3(tx, ty, 0), 0.1);
+                    } else if (h1) {
+                        const tx = (h1[9].x - 0.5) * -50;
+                        const ty = (h1[9].y - 0.5) * -30;
+                        material.uniforms.uHand.value.lerp(new THREE.Vector3(tx, ty, 0), 0.1);
+                    }
+
+                    const isFist = h1[8].y > h1[6].y && h1[12].y > h1[10].y && h1[16].y > h1[14].y;
+                    const isPinch = Math.hypot(h1[8].x - h1[4].x, h1[8].y - h1[4].y) < 0.05;
+
+                    if (state.isDead) {
+                        const pinchCount = (isPinch ? 1 : 0) + (h2 && Math.hypot(h2[8].x - h2[4].x, h2[8].y - h2[4].y) < 0.05 ? 1 : 0);
+
+                        if (pinchCount >= 2) {
+                            state.reviving += 0.0088;
+                            state.exploded -= 0.02;
+                            setStatus('FIELD REALIGNING…', 'var(--revive-violet)');
+                        } else {
+                            state.reviving *= 0.9;
+                            state.exploded += 0.005;
+                        }
+
+                        if (state.reviving >= 1.0) {
+                            state.isDead = false;
+                            state.exploded = 0;
+                            state.stress = 0;
+                            state.reviving = 0;
+                            setStatus('CONTAINMENT RESTORED', 'var(--core-cyan)');
+                        }
+
+                    } else {
+                        if (isFist && !isPinch) {
+                            state.stress += 0.01;
+                        } else {
+                            state.stress *= 0.9;
+                        }
+
+                        if (state.stress > 1.0) {
+                            triggerExplosion();
+                            state.exploded = 0.01;
+                            state.stress = 0;
+                        } else if (state.stress > 0.7) {
+                            setStatus('BREACH IMMINENT', 'var(--breach-red)');
+                        } else if (state.stress > 0.15) {
+                            setStatus('FIELD DESTABILIZING', 'var(--stress-amber)');
+                        } else {
+                            setStatus('CONTAINMENT STABLE', 'var(--core-cyan)');
+                        }
+                    }
+                } else {
+                    ui.telTracking.innerText = 'NO SIGNAL';
+                    if (!state.isDead) state.stress *= 0.9;
+                }
+            } else if (!state.gestureLive) {
+                // Ambient idle mode, no camera available
+                material.uniforms.uHand.value.lerp(new THREE.Vector3(0,0,0), 0.05);
+            }
+
+            state.exploded = Math.max(0, Math.min(state.exploded, 1.9));
+            state.stress = Math.max(0, Math.min(state.stress, 1.01));
+
+            if (state.isDead && state.reviving < 0.1) {
+                state.exploded += 0.4;
+            }
+
+            material.uniforms.uTime.value += 0.02;
+            material.uniforms.uZoom.value = state.zoom;
+            material.uniforms.uStress.value = state.stress;
+            material.uniforms.uExplode.value = state.exploded;
+            material.uniforms.uRevive.value = state.reviving;
+
+            if (state.stress > 0.5 && !state.isDead) {
+                ui.warn.style.opacity = (state.stress - 0.5) * 2;
+                ui.status.style.transform = `translate(${Math.random()*2}px, ${Math.random()*2}px)`;
+            } else {
+                ui.warn.style.opacity = 0;
+                ui.status.style.transform = `none`;
+            }
+
+            ui.telZoom.innerText = state.zoom.toFixed(2) + 'x';
+            const stressPct = Math.round(state.stress * 100);
+            ui.telStress.innerText = stressPct + '%';
+            ui.telStressBar.style.width = stressPct + '%';
+            ui.telStressBar.style.background = stressPct > 70 ? 'var(--breach-red)' : stressPct > 15 ? 'var(--stress-amber)' : 'var(--core-cyan)';
+            ui.ticker.innerHTML = `X ${lastHandPos.x.toFixed(3)}&nbsp;&nbsp;Y ${lastHandPos.y.toFixed(3)}<br>PARTICLES 20,000<br>SIG SUPERNOVA-7`;
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        async function init() {
+            try {
+                await loadModel();
+            } catch (e) {
+                ui.boot.classList.add('error');
+                ui.bootLine.innerText = 'GESTURE MODEL FAILED TO LOAD';
+            }
+            await requestCamera();
+            animate();
+        }
+
+        init();
+    </script>
+</body>
+</html>
