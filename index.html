@@ -491,6 +491,31 @@
         card.addEventListener('mouseleave', () => card.style.transform='');
       });
 
+
+      // Make the entire project tile clickable.
+      document.querySelectorAll('.project[data-project-url]').forEach(card => {
+        const openProject = () => {
+          const url = card.dataset.projectUrl;
+          if (/^https?:\/\//i.test(url)) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+          } else {
+            window.location.href = url;
+          }
+        };
+
+        card.addEventListener('click', e => {
+          if (e.target.closest('a')) return;
+          openProject();
+        });
+
+        card.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openProject();
+          }
+        });
+      });
+
       // Smooth anchors
       document.querySelectorAll('a[href^="#"]').forEach(link => {
         link.addEventListener('click', e => {
