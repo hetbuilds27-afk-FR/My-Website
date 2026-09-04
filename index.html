@@ -349,25 +349,25 @@
         </div>
 
         <div class="projects">
-          <article class="project reveal" data-tilt>
+          <article class="project reveal" data-tilt data-project-url="https://play.google.com/store/apps/details?id=com.hetbuilds.expensetracker" tabindex="0" role="link">
             <span class="project-index mono">01 / MOBILE</span>
             <div><h3>Expense Tracker</h3><p>Published Android app for tracking personal expenses, with spending insights broken down by week, month and year.</p></div>
             <div class="project-footer"><span class="tags">Flutter · Android · Play Store</span><a class="arrow" href="https://play.google.com/store/apps/details?id=com.hetbuilds.expensetracker" target="_blank" rel="noopener">↗</a></div>
           </article>
 
-          <article class="project reveal" data-tilt>
+          <article class="project reveal" data-tilt data-project-url="https://github.com/hetbuilds27-afk-FR/Attendece-App" tabindex="0" role="link">
             <span class="project-index mono">02 / MOBILE</span>
             <div><h3>Attendance Tracker</h3><p>Flutter app for per-subject attendance percentage, with target-based projections showing classes you can skip or need to attend.</p></div>
             <div class="project-footer"><span class="tags">Flutter · Mobile</span><a class="arrow" href="https://github.com/hetbuilds27-afk-FR/Attendece-App" target="_blank" rel="noopener">↗</a></div>
           </article>
 
-          <article class="project reveal" data-tilt>
+          <article class="project reveal" data-tilt data-project-url="gesture-demo/index2.html" tabindex="0" role="link">
             <span class="project-index mono">03 / EXPERIMENT</span>
             <div><h3>Supernova-7</h3><p>A browser-based WebGL particle field destabilized and calibrated with hand gestures — webcam tracking driving a Three.js shader system.</p></div>
             <div class="project-footer"><span class="tags">Three.js · WebGL · MediaPipe</span><a class="arrow" href="gesture-demo/index2.html" target="_blank" rel="noopener">↗</a></div>
           </article>
 
-          <article class="project reveal" data-tilt>
+          <article class="project reveal" data-tilt data-project-url="Gesture_Control.py" tabindex="0" role="link">
             <span class="project-index mono">04 / PYTHON</span>
             <div><h3>Gesture Control</h3><p>OS-level hand-gesture mouse and keyboard control for Windows — pinch to click and scroll, gesture to switch windows, with a live HUD.</p></div>
             <div class="project-footer"><span class="tags">Python · OpenCV · PyAutoGUI</span><a class="arrow" href="Gesture_Control.py" target="_blank" rel="noopener">↗</a></div>
@@ -492,10 +492,11 @@
       });
 
 
-      // Make the entire project tile clickable.
+      // Entire project tile is clickable.
       document.querySelectorAll('.project[data-project-url]').forEach(card => {
         const openProject = () => {
-          const url = card.dataset.projectUrl;
+          const url = card.getAttribute('data-project-url');
+          if (!url) return;
           if (/^https?:\/\//i.test(url)) {
             window.open(url, '_blank', 'noopener,noreferrer');
           } else {
@@ -504,6 +505,7 @@
         };
 
         card.addEventListener('click', e => {
+          // Let the small arrow link keep its own normal behavior.
           if (e.target.closest('a')) return;
           openProject();
         });
